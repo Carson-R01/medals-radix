@@ -1,48 +1,16 @@
-const defaultBase =
+// Use proxy in local dev, fixed Azure URL in production builds
+const API_BASE =
   typeof window !== "undefined" && window.location.hostname === "localhost"
-    ? "" // use dev proxy
+    ? "" // Vite dev proxy
     : "https://medalapi-bbesdff7ftbsc3gk.northcentralus-01.azurewebsites.net";
 
-const API_BASE = import.meta?.env?.VITE_API_BASE_URL ?? defaultBase;
+// API route is fixed; no env or discovery needed
+const COUNTRIES_PATH = "/api/country";
 
-const configuredPath = import.meta?.env?.VITE_COUNTRIES_PATH;
-
-const PATH_CANDIDATES = configuredPath
-  ? [configuredPath]
-  : [
-      "/api/countries",
-      "/api/Country",
-      "/api/country",
-      "/countries",
-      "/Country",
-      "/country",
-    ];
-
-let resolvedPath = null;
-
-const buildUrl = (path, suffix = "") =>
-  `${API_BASE.replace(/\/$/, "")}${path}${suffix ? `/${suffix}` : ""}`;
-
-async function resolvePath() {
-  if (resolvedPath) return resolvedPath;
-  const base = API_BASE.replace(/\/$/, "");
-  // try candidates until one responds < 400
-  for (const candidate of PATH_CANDIDATES) {
-    try {
-      const res = await fetch(buildUrl(candidate), { method: "GET" });
-      if (res.ok) {
-        resolvedPath = candidate;
-        return resolvedPath;
-      }
-    } catch (e) {
-      // ignore and continue trying
-    }
-  }
-  throw new Error(
-    `Could not find a working countries endpoint under ${base}. ` +
-      "Set VITE_COUNTRIES_PATH to the correct route (e.g. /api/Country)."
-  );
-}
+const buildUrl = (suffix = "") =>
+  `${API_BASE.replace(/\/$/, "")}${COUNTRIES_PATH}${
+    suffix ? `/${suffix}` : ""
+  }`;
 
 async function handleResponse(response) {
   if (!response.ok) {
@@ -57,14 +25,12 @@ async function handleResponse(response) {
 }
 
 export async function fetchCountries() {
-  const path = await resolvePath();
-  const res = await fetch(buildUrl(path));
+  const res = await fetch(buildUrl());
   return handleResponse(res);
 }
 
 export async function createCountry(name) {
-  const path = await resolvePath();
-  const res = await fetch(buildUrl(path), {
+  const res = await fetch(buildUrl(), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -78,7 +44,6 @@ export async function createCountry(name) {
 }
 
 export async function deleteCountry(id) {
-  const path = await resolvePath();
-  const res = await fetch(buildUrl(path, id), { method: "DELETE" });
+  const res = await fetch(buildUrl(id), { method: "DELETE" });
   return handleResponse(res);
 }
