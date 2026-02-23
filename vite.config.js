@@ -1,14 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-const repoBase =
-  process.env.GITHUB_REPOSITORY && process.env.GITHUB_REPOSITORY.includes("/")
-    ? `/${process.env.GITHUB_REPOSITORY.split("/")[1]}/`
-    : "/";
+const isCI = process.env.CI === "true";
+const repoBase = "/medals-radix/";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: process.env.CI ? repoBase : "/",
+  base: isCI ? repoBase : "/",
   plugins: [react()],
   server: {
     proxy: {
