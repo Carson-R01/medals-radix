@@ -1,12 +1,11 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-const isCI = process.env.CI === "true";
 const repoBase = "/medals-radix/";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: isCI ? repoBase : "/",
+  base: repoBase,
   plugins: [react()],
   server: {
     proxy: {
