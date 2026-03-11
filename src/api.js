@@ -1,11 +1,21 @@
-// Use proxy in local dev, fixed Azure URL in production builds
-const API_BASE =
-  typeof window !== "undefined" && window.location.hostname === "localhost"
+// Prefer an explicit env override, otherwise fall back to the new Azure host.
+// Keep the empty string when running the Vite dev server so the local proxy
+// in `vite.config.js` can intercept `/api` requests.
+const API_BASE = (() => {
+  const envBase = import.meta?.env?.VITE_API_BASE;
+  if (envBase && envBase.length) return envBase;
+
+  const isLocalhost =
+    typeof window !== "undefined" && window.location.hostname === "localhost";
+  return isLocalhost
     ? "" // Vite dev proxy
     : "https://medalapi-bbesdff7ftbsc3gk.northcentralus-01.azurewebsites.net";
+})();
 
 // API route is fixed; no env or discovery needed
-const COUNTRIES_PATH = "/api/country";
+// Swagger for the Azure API exposes the collection at /Api/country (capital A).
+// Keep casing aligned to avoid any case-sensitive hosts.
+const COUNTRIES_PATH = "/Api/country";
 
 const buildUrl = (suffix = "") =>
   `${API_BASE.replace(/\/$/, "")}${COUNTRIES_PATH}${
